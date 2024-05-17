@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Container</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .shapeContainerWrapper {
+        width: 80%;
+        padding: 10px;
+        border: 2px solid #ccc;
+        margin-bottom: 20px;
+    }
+    
+    .shapeContainer {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        border: 2px dashed #ccc;
+        overflow: hidden; /* Pastikan bentuk tidak muncul di luar kontainer */
+    }
+    
+    .controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .shapeControls {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .square {
+        border-radius: 0;
+    }
+    
+    .circle {
+        border-radius: 50%;
+    }
+    
+</style>
+<body>
+    <div class="shapeContainerWrapper">
+        <div class="shapeContainer"></div>
+    </div>
+    <div class="controls">
+        <button id="addShape">Tambah Bentuk</button>
+        <button id="removeShape">Hapus Bentuk</button>
+        <div class="shapeControls">
+            <label for="shapeType">Bentuk:</label>
+            <select id="shapeType">
+                <option value="square">Persegi</option>
+                <option value="circle">Lingkaran</option>
+            </select>
+            <label for="shapeColor">Warna:</label>
+            <input type="color" id="shapeColor" value="#ff0000">
+            <label for="shapeSize">Ukuran:</label>
+            <input type="number" id="shapeSize" value="50">
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            // Inisialisasi variabel
+            let container = $('.shapeContainer');
+            let addShapeButton = $('#addShape');
+            let removeShapeButton = $('#removeShape');
+            let shapeTypeInput = $('#shapeType');
+            let shapeColorInput = $('#shapeColor');
+            let shapeSizeInput = $('#shapeSize');
+            let animationInProgress = false;
+        
+            // Fungsi untuk mengaktifkan atau menonaktifkan kontrol
+            function setControlsState(state) {
+                addShapeButton.prop('disabled', !state);
+                removeShapeButton.prop('disabled', !state);
+                shapeTypeInput.prop('disabled', !state);
+                shapeColorInput.prop('disabled', !state);
+                shapeSizeInput.prop('disabled', !state);
+            }
+        
+            // Fungsi untuk menambahkan bentuk
+            function addShape() {
+                if (animationInProgress) return; // Mencegah penambahan bentuk saat animasi berlangsung
+        
+                animationInProgress = true; // Menandakan bahwa animasi sedang berlangsung
+                setControlsState(false); // Menonaktifkan kontrol
+                
+                // Mendapatkan properti bentuk dari input
+                let shapeType = shapeTypeInput.val();
+                let shapeColor = shapeColorInput.val();
+                let shapeSize = parseInt(shapeSizeInput.val());
+                
+                // Membuat bentuk baru
+                let shape = $('<div></div>');
+                shape.addClass(shapeType).css('background-color', shapeColor);
+                container.append(shape);
+        
+                // Menghitung posisi bentuk
+                let shapes = container.children();
+                let maxWidth = container.width();
+                let maxShapesPerRow = Math.floor(maxWidth / (shapeSize + 10));
+                let row = Math.floor(shapes.length / maxShapesPerRow);
+                let col = shapes.length % maxShapesPerRow;
+        
+                let left = col * (shapeSize + 10);
+                let top = row * (shapeSize + 10);
+        
+                // Mengatur posisi dan ukuran awal bentuk
+                shape.css({
+                    'position': 'absolute',
+                    'left': '-100px',  
+                    'top': top,
+                    'width': shapeSize,
+                    'height': shapeSize
+                });
+        
+                // Menganimasikan bentuk ke tempatnya
+                shape.animate({
+                    'left': left
+                }, 'slow', function () {
+                    animationInProgress = false; // Animasi selesai
+                    setControlsState(true); // Mengaktifkan kembali kontrol
+                });
+            }
+        
+            // Fungsi untuk menghapus bentuk terakhir
+            function removeShape() {
+                if (animationInProgress) return; // Mencegah penghapusan bentuk saat animasi berlangsung
+        
+                animationInProgress = true; // Menandakan bahwa animasi sedang berlangsung
+                setControlsState(false); // Menonaktifkan kontrol
+                let shapes = container.children();
+                if (shapes.length > 0) {
+                    // Mendapatkan bentuk terakhir
+                    let lastShape = shapes.last();
+                    // Menganimasikan bentuk keluar ke kiri
+                    lastShape.animate({
+                        'left': '-100px'
+                    }, 'slow', function () {
+                        lastShape.remove(); // Menghapus bentuk dari DOM
+
+                        
+                        animationInProgress = false; // Animasi selesai
+                        setControlsState(true); // Mengaktifkan kembali kontrol
+                    });
+                } else {
+                    animationInProgress = false; // Tidak ada bentuk untuk dihapus
+                    setControlsState(true); // Mengaktifkan kembali kontrol
+                }
+            }
+        
+            // Event listener untuk tombol Tambah Bentuk
+            addShapeButton.on('click', function () {
+                addShape();
+            });
+        
+            // Event listener untuk tombol Hapus Bentuk
+            removeShapeButton.on('click', function () {
+                removeShape();
+            });
+        });
+    </script>
+</body>
+</html>
